@@ -1,0 +1,190 @@
+package handlers
+
+import (
+    "context"
+    "encoding/json"
+    "net/http"
+    "strconv"
+    "strings"
+    "time"
+
+    "github.com/minio/minio-go/v7"
+    "github.com/opensearch-project/opensearch-go"
+    "github.com/opensearch-project/opensearch-go/opensearchapi"
+    log "github.com/sirupsen/logrus"
+
+    "go-search-api/internal/config"
+    "go-search-api/internal/clients"
+    "go-search-api/internal/models"
+)
+
+// SearchHandler returns an http.HandlerFunc that performs search with structured logs
+func SearchHandler(osClient *opensearch.Client, minioClient *minio.Client, cfg *config.Config) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        // Parse query parameters
+        q := r.URL.Query().Get("q")
+        idxParam := r.URL.Query().Get("indexes")
+        pageParam := r.URL.Query().Get("page")
+
+        // Set up structured log entry
+        logEntry := log.WithFields(log.Fields{
+            "query":   q,
+            "indexes": idxParam,
+            "page":    pageParam,
+            "remote":  r.RemoteAddr,
+        })
+        logEntry.Info("Received search request")
+
+        // Determine indexes to search
+        var indexes []string
+        if idxParam != "" {
+            for _, idx := range strings.Split(idxParam, ",") {
+                indexes = append(indexes, strings.TrimSpace(idx))
+            }
+        } else {
+            indexes = []string{"people", "apps", "articles", "images"}
+        }
+
+        // Pagination
+        page := 1
+        if p, err := strconv.Atoi(pageParam); err == nil && p > 0 {
+            page = p
+        }
+        size := 10
+        from := (page - 1) * size
+
+        // Build search body with boosts and aggregation
+        body := map[string]interface{}{        
+            "from": from,
+            "size": size,
+            "query": map[string]interface{}{            
+                "bool": map[string]interface{}{                
+                    "should": []interface{}{                    
+                        map[string]interface{}{                    
+                            "multi_match": map[string]interface{}{                    
+                                "query":  q,
+                                "fields": []string{"name^1.5", "job_title^1.5", "department^1.5"},
+                            },
+                        },
+                        map[string]interface{}{                    
+                            "multi_match": map[string]interface{}{                    
+                                "query":  q,
+                                "fields": []string{"name^1.6", "description^1.6"},
+                            },
+                        },
+                        map[string]interface{}{                    
+                            "multi_match": map[string]interface{}{                    
+                                "query":  q,
+                                "fields": []string{"title^1.3", "snippet^1.3"},
+                            },
+                        },
+                        map[string]interface{}{                    
+                            "match": map[string]interface{}{                    
+                                "title": map[string]interface{}{                    
+                                    "query": q,
+                                    "boost": 1.3,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+            "aggs": map[string]interface{}{            
+                "by_index": map[string]interface{}{            
+                    "terms": map[string]interface{}{"field": "_index"},
+                },
+            },
+        }
+
+        // Execute search request
+        req := opensearchapi.SearchRequest{
+            Index: indexes,
+            Body:  clients.ToJSONReader(body),
+        }
+        res, err := req.Do(context.Background(), osClient)
+        if err != nil {
+            logEntry.WithError(err).Error("OpenSearch request failed")
+            http.Error(w, "search error", http.StatusInternalServerError)
+            return
+        }
+        defer res.Body.Close()
+
+        if res.StatusCode != http.StatusOK {
+            logEntry.Errorf("OpenSearch returned status %d", res.StatusCode)
+            http.Error(w, "search error", res.StatusCode)
+            return
+        }
+
+        // Parse OpenSearch response
+        var data struct {
+            Hits struct {
+                Total struct {Value int64 `json:"value"`} `json:"total"`
+                Hits  []struct {
+                    Index  string                 `json:"_index"`
+                    ID     string                 `json:"_id"`
+                    Score  float64                `json:"_score"`
+                    Source map[string]interface{} `json:"_source"`
+                } `json:"hits"`
+            } `json:"hits"`
+            Aggregations struct {
+                ByIndex struct {
+                    Buckets []struct {
+                        Key      string `json:"key"`
+                        DocCount int64  `json:"doc_count"`
+                    } `json:"buckets"`
+                } `json:"by_index"`
+            } `json:"aggregations"`
+        }
+        if err := json.NewDecoder(res.Body).Decode(&data); err != nil {
+            logEntry.WithError(err).Error("Failed to parse search response")
+            http.Error(w, "parse error", http.StatusInternalServerError)
+            return
+        }
+
+        // Build counts map
+        counts := make(map[string]int64)
+        for _, b := range data.Aggregations.ByIndex.Buckets {
+            counts[b.Key] = b.DocCount
+        }
+
+        // Build result objects
+        var results []models.Result
+        for _, h := range data.Hits.Hits {
+            fields := h.Source
+            switch h.Index {
+            case "apps":
+                if icon, ok := fields["icon_path"].(string); ok {
+                    url, _ := clients.PresignedURL(minioClient, cfg.MinioBucket, icon, time.Minute*15)
+                    fields["icon_url"] = url
+                }
+            case "images":
+                if img, ok := fields["full_path"].(string); ok {
+                    thumbKey := "thumbnails/" + img
+                    tURL, _ := clients.PresignedURL(minioClient, cfg.MinioBucket, thumbKey, time.Minute*15)
+                    fURL, _ := clients.PresignedURL(minioClient, cfg.MinioBucket, img, time.Minute*15)
+                    fields["thumbnail_url"] = tURL
+                    fields["full_url"] = fURL
+                }
+            }
+            results = append(results, models.Result{
+                Index:  h.Index,
+                ID:     h.ID,
+                Score:  h.Score,
+                Fields: fields,
+            })
+        }
+
+        // Log completion
+        logEntry.WithFields(log.Fields{
+            "returned_hits": len(results),
+            "total_hits":    data.Hits.Total.Value,
+        }).Info("Search completed successfully")
+
+        // Respond
+        resp := models.SearchResponse{Total: data.Hits.Total.Value, Counts: counts, Results: results}
+        w.Header().Set("Content-Type", "application/json")
+        if err := json.NewEncoder(w).Encode(resp); err != nil {
+            logEntry.WithError(err).Error("Failed to write JSON response")
+        }
+    }
+}

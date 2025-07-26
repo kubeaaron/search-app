@@ -1,0 +1,68 @@
+version: '3.8'
+services:
+  opensearch:
+    image: opensearchproject/opensearch:2
+    environment:
+      - discovery.type=single-node
+      - plugins.security.disabled=true
+      - bootstrap.memory_lock=true
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=MPassword123!
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+    networks:
+      - backend
+
+  minio:
+    image: minio/minio:latest
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - backend
+    volumes:
+      - minio-data:/data
+
+  backend:
+    build:
+      context: ./go-search-api
+      dockerfile: Dockerfile
+    depends_on:
+      - opensearch
+      - minio
+    environment:
+      OPENSEARCH_URL: http://opensearch:9200
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: search-assets
+      LISTEN_ADDR: :8080
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+    networks:
+      - backend
+
+networks:
+  backend:
+
+volumes:
+  minio-data:

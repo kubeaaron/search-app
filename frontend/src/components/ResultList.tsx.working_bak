@@ -1,0 +1,61 @@
+import React from 'react';
+import type { SearchResult } from '../api/search';
+
+interface Props {
+  results?: SearchResult[]; // allow it to be undefined for safety
+  onImageClick: (url: string) => void;
+}
+
+export const ResultList: React.FC<Props> = ({ results = [], onImageClick }) => (
+  <div className="p-4 space-y-4">
+    {results.length === 0 ? (
+      <p>No results to display.</p>
+    ) : (
+      results.map(r => (
+        <div key={r.id} className="border p-4 rounded shadow">
+          {r.index === 'people' && r.fields && (
+            <>
+              <div className="font-bold text-lg">{r.fields.name}</div>
+              <div>{r.fields.job_title} - {r.fields.department}</div>
+              <div>{r.fields.phone}</div>
+            </>
+          )}
+
+          {r.index === 'apps' && r.fields && (
+            <div className="flex items-center">
+              <img
+                src={r.fields.icon_url}
+                alt="icon"
+                className="w-2 h-2 mr-2"
+              />
+              <div>
+                <div className="font-bold">{r.fields.name}</div>
+                <a href={r.fields.link} className="text-blue-600 underline">Visit</a>
+                <p>{r.fields.description}</p>
+              </div>
+            </div>
+          )}
+
+          {r.index === 'articles' && r.fields && (
+            <div>
+              <a href={r.fields.url} className="font-bold text-blue-600 underline">
+                {r.fields.title}
+              </a>
+              <p>{r.fields.snippet}</p>
+            </div>
+          )}
+
+          {r.index === 'images' && r.fields && (
+            <img
+              src={r.fields.thumbnail_url}
+              alt={r.fields.title}
+              className="cursor-pointer"
+              onClick={() => onImageClick(r.fields.full_url)}
+            />
+          )}
+        </div>
+      ))
+    )}
+  </div>
+);
+

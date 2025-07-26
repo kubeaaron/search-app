@@ -1,0 +1,22 @@
+import React, { useState } from 'react';
+
+interface Props { onSearch: (q: string) => void; }
+export const SearchBar: React.FC<Props> = ({ onSearch }) => {
+  const [query, setQuery] = useState('');
+  return (
+    <div className="p-4">
+      <input
+        type="text"
+        className="border p-2 w-full"
+        placeholder="Search..."
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+        onKeyDown={e => e.key === 'Enter' && onSearch(query)}
+      />
+      <button
+        className="mt-2 px-4 py-2 bg-blue-500 text-white rounded"
+        onClick={() => onSearch(query)}
+      >Search</button>
+    </div>
+  );
+};
