@@ -1,39 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { search, SearchResponse } from './api/search';
 import { SearchBar } from './components/SearchBar';
-import { IndexFilter } from './components/IndexFilter';
 import { ResultList } from './components/ResultList';
 import { Pagination } from './components/Pagination';
 import { ImageModal } from './components/ImageModal';
 
+const TABS = ['all', 'people', 'apps', 'articles', 'images'];
+
 export const App: React.FC = () => {
   const [resp, setResp] = useState<SearchResponse>({ total: 0, counts: {}, results: [] });
   const [page, setPage] = useState(1);
-  const [indexes, setIndexes] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState('all');
   const [modalUrl, setModalUrl] = useState<string | null>(null);
-  const [query, setQuery] = useState<string>(''); // Track query
+  const [query, setQuery] = useState<string>('');
+
+  useEffect(() => {
+    if (query) {
+      doSearch(query);
+    }
+  }, [activeTab, query]);
 
   const doSearch = async (q: string) => {
     setQuery(q);
     setPage(1);
-    const data = await search(q, indexes.length ? indexes : ['people','apps','articles','images'], 1);
+    const data = await search(q, activeTab === 'all' ? TABS.slice(1) : [activeTab], 1);
     setResp(data);
   };
 
   const handlePageChange = async (newPage: number) => {
     setPage(newPage);
-    const data = await search(query, indexes.length ? indexes : ['people','apps','articles','images'], newPage);
+    const data = await search(query, activeTab === 'all' ? TABS.slice(1) : [activeTab], newPage);
     setResp(data);
   };
 
-  // Landing page: show only logo and search bar slightly above center
+  // Landing page
   if (!query) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-start bg-white mt-32">
+      <div className="min-h-screen flex flex-col items-center justify-start bg-white mt-16">
         <img
           src="/logo.png"
           alt="Logo"
-          className="mb-8 w-74 h-64 object-contain"
+          className="mb-8 w-144 h-96 object-contain"
         />
         <div className="w-full max-w-xl">
           <SearchBar onSearch={doSearch} />
@@ -48,22 +55,36 @@ export const App: React.FC = () => {
       <div className="w-full max-w-3xl space-y-6">
         <SearchBar onSearch={doSearch} />
 
-        <div className="flex justify-center">
-          <IndexFilter selected={indexes} onChange={setIndexes} />
+        {/* Tabs and Pagination */}
+        <div className="flex items-center justify-between border-b border-gray-200">
+          <div className="flex">
+            {TABS.map(tab => (
+              <button
+                key={tab}
+                className={`px-4 py-2 -mb-px font-semibold
+                  ${activeTab === tab
+                    ? 'bg-blue-500 text-white'
+                    : 'text-gray-500 hover:text-blue-600'
+                  }
+                   transition-colors duration-300 hover:bg-blue-100`}
+                onClick={() => setActiveTab(tab)}
+              >
+                {tab.toUpperCase()}
+              </button>
+            ))}
+          </div>
+          <Pagination page={page} total={resp.total} onPageChange={handlePageChange} />
         </div>
 
+        {/* Search query and counts */}
         <div className="text-sm text-gray-600 text-center">
           Searched for '<span className="font-medium">{query}</span>'
-        </div>
-
-        <div className="p-2 text-sm text-gray-700 text-center">
           {Object.entries(resp.counts ?? {}).map(([idx, c]) => (
-            <span key={idx} className="mr-4 capitalize">{idx} ({c})</span>
+            <span key={idx} className="ml-4 capitalize"> | {idx} ({c})</span>
           ))}
         </div>
 
         <ResultList results={resp.results} onImageClick={setModalUrl} />
-        <Pagination page={page} total={resp.total} onPageChange={handlePageChange} />
 
         {modalUrl && <ImageModal url={modalUrl} onClose={() => setModalUrl(null)} />}
       </div>
