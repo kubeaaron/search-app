@@ -8,7 +8,15 @@ interface Props {
 
 export const ResultList: React.FC<Props> = ({ results, onImageClick }) => {
   if (!results || results.length === 0) {
-    return <div className="text-gray-500 text-lg mt-4 text-center font-bold">No results found.</div>;
+    return (
+      <div className="flex flex-col items-center justify-center mt-8">
+        <img
+          src="/noresults.png"
+          alt="No results found"
+          className="w-96 h-96 object-contain mb-4"
+        />
+      </div>
+    );
   }
 
   return (

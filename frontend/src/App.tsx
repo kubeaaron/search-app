@@ -62,9 +62,13 @@ export const App: React.FC = () => {
               <button
                 key={tab}
                 className={`px-4 py-2 -mb-px font-semibold
-                  ${activeTab === tab
-                    ? 'bg-blue-500 text-white'
-                    : 'text-gray-500 hover:text-blue-600'
+                  ${tab === 'all'
+                    ? activeTab === tab
+                      ? 'bg-blue-800 text-white'
+                      : 'bg-gray-800 text-white'
+                    : activeTab === tab
+                      ? 'bg-blue-500 text-white'
+                      : 'text-gray-500 hover:text-blue-600'
                   }
                    transition-colors duration-300 hover:bg-blue-100`}
                 onClick={() => setActiveTab(tab)}
