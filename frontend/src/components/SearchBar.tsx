@@ -1,24 +1,36 @@
 import React, { useState } from 'react';
 
-interface Props { onSearch: (q: string) => void; }
+interface Props {
+  onSearch: (query: string) => void;
+}
+
 export const SearchBar: React.FC<Props> = ({ onSearch }) => {
-  const [query, setQuery] = useState('');
+  const [value, setValue] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (value.trim()) {
+      onSearch(value.trim());
+    }
+  };
+
   return (
-<div className="flex space-x-2">
-  <input
-    type="text"
-    className="border border-gray-300 rounded-lg px-4 py-2 w-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-    placeholder="Search for apps, people, etc..."
-    value={query}
-    onChange={e => setQuery(e.target.value)}
-    onKeyDown={e => e.key === 'Enter' && onSearch(query)}
-  />
-  <button
-    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow"
-    onClick={() => onSearch(query)}
-  >
-    Search
-  </button>
-</div>
+    <form onSubmit={handleSubmit} className="flex">
+      <input
+        type="text"
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        className="flex-1 border border-gray-300 rounded-l-full px-4 py-2 focus:outline-none"
+        placeholder="Search…"
+      />
+      <button
+        type="submit"
+        disabled={!value.trim()}
+        className={`px-6 py-2 rounded-r-full font-semibold transition 
+          ${!value.trim() ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+      >
+        Search
+      </button>
+    </form>
   );
 };

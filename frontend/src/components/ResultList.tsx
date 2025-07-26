@@ -16,8 +16,12 @@ export const ResultList: React.FC<Props> = ({ results, onImageClick }) => {
       {results.map((r, i) => (
         <div
           key={i}
-          className="border border-gray-200 rounded-2xl p-4 shadow-md bg-white hover:shadow-lg transition-shadow duration-200"
+          className="border border-gray-200 rounded-2xl p-4 shadow-md bg-white hover:shadow-lg transition-shadow duration-200 relative"
         >
+          <div className="absolute top-3 right-3 text-xs text-gray-400 uppercase tracking-wider">
+            {r.index}
+          </div>
+
           {/* People */}
           {r.index === 'people' && (
             <div>
