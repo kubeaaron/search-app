@@ -1,0 +1,41 @@
+```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-minio
+spec:
+  serviceName: {{ .Release.Name }}-minio
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      containers:
+      - name: minio
+        image: {{ .Values.minio.image }}
+        args: ["server", "/data", "--console-address", ":9001"]
+        env:
+        - name: MINIO_ROOT_USER
+          value: {{ .Values.minio.credentials.rootUser }}
+        - name: MINIO_ROOT_PASSWORD
+          value: {{ .Values.minio.credentials.rootPassword }}
+        ports:
+        - containerPort: 9000
+        - containerPort: 9001
+        volumeMounts:
+        - name: data
+          mountPath: /data
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: {{ .Values.minio.storage.storageClass }}
+      resources:
+        requests:
+          storage: {{ .Values.minio.storage.size }}
+```

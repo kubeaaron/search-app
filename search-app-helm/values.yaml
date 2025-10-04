@@ -1,0 +1,68 @@
+```yaml
+opensearch:
+  image: opensearchproject/opensearch:2
+  replicas: 1
+  javaOpts: "-Xms512m -Xmx512m"
+  storage:
+    size: 10Gi
+    storageClass: standard
+  security:
+    disabled: true
+  bootstrap:
+    memoryLock: true
+  resources:
+    limits:
+      memory: "1Gi"
+    requests:
+      memory: "512Mi"
+  ulimits:
+    memlock:
+      soft: -1
+      hard: -1
+
+opensearchDashboards:
+  image: opensearchproject/opensearch-dashboards:2
+  replicas: 1
+
+minio:
+  image: minio/minio:latest
+  credentials:
+    rootUser: minioadmin
+    rootPassword: minioadmin
+  storage:
+    size: 10Gi
+    storageClass: standard
+  args:
+    - server
+    - /data
+    - --console-address
+    - ":9001"
+
+backend:
+  image:
+    repository: harbor.local/search-app/search-backend
+    tag: latest
+  replicas: 1
+  config:
+    minioBucket: search-assets
+    listenAddr: :8080
+  env:
+    OPENSEARCH_URL: http://{{ .Release.Name }}-opensearch:9200
+    MINIO_ENDPOINT: http://{{ .Release.Name }}-minio:9000
+    MINIO_ACCESS_KEY: minioadmin
+    MINIO_SECRET_KEY: minioadmin
+    MINIO_BUCKET: search-assets
+    LISTEN_ADDR: :8080
+
+frontend:
+  image:
+    repository: harbor.local/search-app/search-frontend
+    tag: latest
+  replicas: 1
+
+ingress:
+  hostname: search-app.local
+  tls:
+    enabled: true
+    secretName: search-app-tls
+```

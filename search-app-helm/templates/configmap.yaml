@@ -1,0 +1,2 @@
+   helm create search-app
+   cd search-app

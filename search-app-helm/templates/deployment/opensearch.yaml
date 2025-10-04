@@ -1,0 +1,63 @@
+```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-opensearch
+  labels:
+    app.kubernetes.io/name: opensearch
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: "2"
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: search-app
+  annotations:
+    description: "OpenSearch database for search functionality"
+spec:
+  serviceName: {{ .Release.Name }}-opensearch
+  replicas: {{ .Values.opensearch.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: opensearch
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: opensearch
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/version: "2"
+        app.kubernetes.io/component: database
+        app.kubernetes.io/part-of: search-app
+    spec:
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: opensearch
+        image: {{ .Values.opensearch.image }}
+        securityContext:
+          capabilities:
+            add:
+              - IPC_LOCK
+        env:
+        - name: discovery.type
+          value: single-node
+        - name: plugins.security.disabled
+          value: "{{ .Values.opensearch.security.disabled }}"
+        - name: bootstrap.memory_lock
+          value: "{{ .Values.opensearch.bootstrap.memoryLock }}"
+        - name: OPENSEARCH_JAVA_OPTS
+          value: {{ .Values.opensearch.javaOpts }}
+        ports:
+        - containerPort: 9200
+        volumeMounts:
+        - name: data
+          mountPath: /usr/share/opensearch/data
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: {{ .Values.opensearch.storage.storageClass }}
+      resources:
+        requests:
+          storage: {{ .Values.opensearch.storage.size }}
+```
