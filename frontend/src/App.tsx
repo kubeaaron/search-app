@@ -37,11 +37,19 @@ export const App: React.FC = () => {
   if (!query) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-start bg-white mt-16">
-        <img
-          src="/logo.png"
-          alt="Logo"
-          className="mb-8 w-144 h-96 object-contain"
-        />
+        <div className="relative mb-8 w-144 h-96 flex items-center justify-center">
+          <img
+            src="/logo.gif"
+            alt="Logo"
+            className="w-144 h-96 object-contain"
+          />
+          <img
+            src="/20250803_2055_MY-CONIC Logo_simple_compose_01k1rr0t21eywt8drrgbpssyqs.png"
+            alt="Overlay Logo"
+            className="absolute inset-0 w-120 h-85 object-contain pointer-events-none"
+            style={{ zIndex: 10 }}
+          />
+        </div>
         <div className="w-full max-w-xl">
           <SearchBar onSearch={doSearch} />
         </div>
