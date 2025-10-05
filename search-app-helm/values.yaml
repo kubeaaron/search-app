@@ -1,5 +1,5 @@
 imagePullSecrets:
-  - name: harbor-creds
+  - name: harbor-cred
 
 opensearch:
   image: opensearchproject/opensearch:2
