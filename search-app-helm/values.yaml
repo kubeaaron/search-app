@@ -1,6 +1,9 @@
 imagePullSecrets:
   - name: harbor-cred
 
+backendHost: search-app-backend.search-app.svc.cluster.local
+backendPort: 8080
+
 opensearch:
   image: opensearchproject/opensearch:2
   replicas: 1
