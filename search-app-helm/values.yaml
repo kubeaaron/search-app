@@ -1,4 +1,3 @@
-```yaml
 opensearch:
   image: opensearchproject/opensearch:2
   replicas: 1
@@ -65,4 +64,3 @@ ingress:
   tls:
     enabled: true
     secretName: search-app-tls
-```
