@@ -1,3 +1,6 @@
+imagePullSecrets:
+  - name: harbor-creds
+
 opensearch:
   image: opensearchproject/opensearch:2
   replicas: 1
