@@ -24,10 +24,20 @@ spec:
           value: http://{{ .Release.Name }}-opensearch:9200
         - name: MINIO_ENDPOINT
           value: http://{{ .Release.Name }}-minio:9000
+        {{- if and .Values.minio.credentialsSecretName .Values.minio.credentialsSecretKeys.rootUser }}
         - name: MINIO_ACCESS_KEY
-          value: {{ .Values.minio.credentials.rootUser }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.minio.credentialsSecretName }}
+              key: {{ .Values.minio.credentialsSecretKeys.rootUser }}
+        {{- end }}
+        {{- if and .Values.minio.credentialsSecretName .Values.minio.credentialsSecretKeys.rootPassword }}
         - name: MINIO_SECRET_KEY
-          value: {{ .Values.minio.credentials.rootPassword }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.minio.credentialsSecretName }}
+              key: {{ .Values.minio.credentialsSecretKeys.rootPassword }}
+        {{- end }}
         - name: MINIO_BUCKET
           value: {{ .Values.backend.config.minioBucket }}
         - name: LISTEN_ADDR
