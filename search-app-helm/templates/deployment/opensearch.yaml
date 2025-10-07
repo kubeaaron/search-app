@@ -45,6 +45,11 @@ spec:
           value: "{{ .Values.opensearch.bootstrap.memoryLock }}"
         - name: OPENSEARCH_JAVA_OPTS
           value: {{ .Values.opensearch.javaOpts }}
+        - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.opensearch.credentials.adminPasswordSecretName }}
+              key: {{ .Values.opensearch.credentials.adminPasswordSecretKey }}
         ports:
         - containerPort: 9200
         volumeMounts:
