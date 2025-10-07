@@ -17,11 +17,19 @@ spec:
       - name: minio
         image: {{ .Values.minio.image }}
         args: ["server", "/data", "--console-address", ":9001"]
+        {{- if .Values.minio.credentialsSecretName }}
         env:
         - name: MINIO_ROOT_USER
-          value: {{ .Values.minio.credentials.rootUser }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.minio.credentialsSecretName }}
+              key: {{ .Values.minio.credentialsSecretKeys.rootUser | default "rootUser" }}
         - name: MINIO_ROOT_PASSWORD
-          value: {{ .Values.minio.credentials.rootPassword }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.minio.credentialsSecretName }}
+              key: {{ .Values.minio.credentialsSecretKeys.rootPassword | default "rootPassword" }}
+        {{- end }}
         ports:
         - containerPort: 9000
         - containerPort: 9001
