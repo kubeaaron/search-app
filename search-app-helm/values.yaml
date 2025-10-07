@@ -24,6 +24,9 @@ opensearch:
     memlock:
       soft: -1
       hard: -1
+  credentials:
+    adminPasswordSecretName: search-app-secrets
+    adminPasswordSecretKey: opensearch-admin-password
 
 opensearchDashboards:
   image: opensearchproject/opensearch-dashboards:2
@@ -31,12 +34,13 @@ opensearchDashboards:
 
 minio:
   image: minio/minio:latest
-  credentials:
-    rootUser: minioadmin
-    rootPassword: minioadmin
   storage:
     size: 5Gi
     storageClass: hostpath
+  credentialsSecretName: search-app-secrets
+  credentialsSecretKeys:
+    rootUser: minio-root-user
+    rootPassword: minio-root-password
   args:
     - server
     - /data
@@ -52,12 +56,14 @@ backend:
     minioBucket: search-assets
     listenAddr: :8080
   env:
-    OPENSEARCH_URL: http://{{ .Release.Name }}-opensearch:9200
-    MINIO_ENDPOINT: http://{{ .Release.Name }}-minio:9000
-    MINIO_ACCESS_KEY: minioadmin
-    MINIO_SECRET_KEY: minioadmin
+    MINIO_ACCESS_KEY_SECRET_NAME: search-app-secrets
+    MINIO_ACCESS_KEY_SECRET_KEY: minio-root-user
+    MINIO_SECRET_KEY_SECRET_NAME: search-app-secrets
+    MINIO_SECRET_KEY_SECRET_KEY: minio-root-password
     MINIO_BUCKET: search-assets
     LISTEN_ADDR: :8080
+    OPENSEARCH_URL: http://search-app-opensearch:9200
+    MINIO_ENDPOINT: http://search-app-minio:9000
 
 frontend:
   image:
