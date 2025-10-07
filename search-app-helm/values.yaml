@@ -9,8 +9,8 @@ opensearch:
   replicas: 1
   javaOpts: "-Xms512m -Xmx512m"
   storage:
-    size: 10Gi
-    storageClass: standard
+    size: 5Gi
+    storageClass: hostpath
   security:
     disabled: true
   bootstrap:
@@ -35,8 +35,8 @@ minio:
     rootUser: minioadmin
     rootPassword: minioadmin
   storage:
-    size: 10Gi
-    storageClass: standard
+    size: 5Gi
+    storageClass: hostpath
   args:
     - server
     - /data
