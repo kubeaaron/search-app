@@ -36,6 +36,9 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /data
+      volumes:
+      - name: data
+        emptyDir: {}
   #volumeClaimTemplates:
   #- metadata:
   #    name: data
@@ -45,6 +48,3 @@ spec:
   #    resources:
   #      requests:
   #        storage: {{ .Values.minio.storage.size }}
-  volumes:
-  - name: data
-    emptyDir: {}
