@@ -36,12 +36,15 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /data
-  volumeClaimTemplates:
-  - metadata:
-      name: data
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      storageClassName: {{ .Values.minio.storage.storageClass }}
-      resources:
-        requests:
-          storage: {{ .Values.minio.storage.size }}
+  #volumeClaimTemplates:
+  #- metadata:
+  #    name: data
+  #  spec:
+  #    accessModes: [ "ReadWriteOnce" ]
+  #    storageClassName: "" # {{ .Values.minio.storage.storageClass }}
+  #    resources:
+  #      requests:
+  #        storage: {{ .Values.minio.storage.size }}
+  volumes:
+  - name: data
+    emptyDir: {}

@@ -56,12 +56,16 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /usr/share/opensearch/data
-  volumeClaimTemplates:
-  - metadata:
-      name: data
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      storageClassName: {{ .Values.opensearch.storage.storageClass }}
-      resources:
-        requests:
-          storage: {{ .Values.opensearch.storage.size }}
+  #volumeClaimTemplates:
+  #- metadata:
+  #    name: data
+  #  spec:
+  #    accessModes: [ "ReadWriteOnce" ]
+  #    storageClassName: "" #{{ .Values.opensearch.storage.storageClass }}
+  #    resources:
+  #      requests:
+  #        storage: {{ .Values.opensearch.storage.size }}
+  #      volumeMode: Filesystem
+  volumes:
+  - name: data
+    emptyDir: {}
