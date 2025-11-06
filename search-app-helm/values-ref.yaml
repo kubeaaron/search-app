@@ -13,7 +13,7 @@ frontend:
     tag: 1.0.1
   replicas: 1
 
-  ingress:
+ingress:
   enabled: true
   hostname: search-app-ref.local
   tls:
