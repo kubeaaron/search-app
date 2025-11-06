@@ -12,3 +12,10 @@ frontend:
     repository: harbor.local/search-app/search-frontend
     tag: 1.0.1
   replicas: 1
+
+  ingress:
+  enabled: true
+  hostname: search-app.local
+  tls:
+    enabled: true
+    secretName: search-app-tls
