@@ -72,6 +72,7 @@ frontend:
   replicas: 1
 
 ingress:
+  enabled: true
   hostname: search-app.local
   tls:
     enabled: true
