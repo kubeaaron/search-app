@@ -5,7 +5,7 @@ backendHost: search-app-backend.search-app.svc.cluster.local
 backendPort: 8080
 
 opensearch:
-  image: opensearchproject/opensearch:2
+  image: opensearchproject/opensearch:2.11.1
   replicas: 1
   javaOpts: "-Xms512m -Xmx512m"
   storage:
@@ -29,7 +29,7 @@ opensearch:
     adminPasswordSecretKey: opensearch-admin-password
 
 opensearchDashboards:
-  image: opensearchproject/opensearch-dashboards:2
+  image: opensearchproject/opensearch-dashboards:2.11.1
   replicas: 1
 
 minio:
@@ -50,7 +50,7 @@ minio:
 backend:
   image:
     repository: harbor.local/search-app/search-backend
-    tag: latest
+    tag: something
   replicas: 1
   config:
     minioBucket: search-assets
@@ -68,7 +68,7 @@ backend:
 frontend:
   image:
     repository: harbor.local/search-app/search-frontend
-    tag: latest
+    tag: something
   replicas: 1
 
 ingress:
