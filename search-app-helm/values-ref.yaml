@@ -13,6 +13,14 @@ frontend:
     tag: 1.0.1
   replicas: 1
 
+opensearch:
+  image: harbor.local/search-app/opensearch:2.19.4
+  replicas: 1
+
+opensearchDashboards:
+  image: harbor.local/search-app/opensearch-dashboards:2.19.4
+  replicas: 1
+
 ingress:
   enabled: true
   hostname: search-app-ref.local
