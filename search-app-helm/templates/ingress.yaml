@@ -15,7 +15,7 @@ spec:
   tls:
   - hosts:
     - {{ .Values.ingress.hostname }}
-    secretName: search-app-tls
+    secretName: {{ .Values.ingress.tls.secretName }}
   rules:
   - host: {{ .Values.ingress.hostname }}
     http:
