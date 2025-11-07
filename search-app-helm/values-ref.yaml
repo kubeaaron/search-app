@@ -18,4 +18,4 @@ ingress:
   hostname: search-app-ref.local
   tls:
     enabled: true
-    secretName: search-app-tls
+    secretName: search-app-ref-tls
