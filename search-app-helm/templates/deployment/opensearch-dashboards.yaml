@@ -22,7 +22,9 @@ spec:
           env:
             - name: OPENSEARCH_HOSTS
               value: "http://{{ .Release.Name }}-opensearch:9200"
-            - name: OPENSEARCH_SECURITY_ENABLED
-              value: "false"
+            - name: OPENSEARCH_USERNAME
+              value: ""
+            - name: OPENSEARCH_PASSWORD
+              value: ""
             - name: DISABLE_SECURITY_DASHBOARDS_PLUGIN
               value: "true"
