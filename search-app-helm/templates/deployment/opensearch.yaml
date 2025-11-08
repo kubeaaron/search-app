@@ -15,6 +15,7 @@ spec:
   replicas: {{ .Values.opensearch.replicas }}
   selector:
     matchLabels:
+      app: opensearch
       app.kubernetes.io/name: opensearch
       app.kubernetes.io/instance: {{ .Release.Name }}
   template:
