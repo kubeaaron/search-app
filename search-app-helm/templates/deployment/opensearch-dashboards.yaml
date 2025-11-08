@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-opensearch-dashboards
+  labels:
+    app: {{ .Release.Name }}-opensearch-dashboards
+spec:
+  replicas: {{ .Values.opensearchDashboards.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-opensearch-dashboards
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-opensearch-dashboards
+    spec:
+      containers:
+        - name: opensearch-dashboards
+          image: {{ .Values.opensearchDashboards.image }}
+          ports:
+            - containerPort: 5601
+          env:
+            - name: OPENSEARCH_HOSTS
+              value: "http://{{ .Release.Name }}-opensearch:9200"
