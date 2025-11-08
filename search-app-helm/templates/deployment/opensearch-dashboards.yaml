@@ -24,3 +24,5 @@ spec:
               value: "http://{{ .Release.Name }}-opensearch:9200"
             - name: OPENSEARCH_SECURITY_ENABLED
               value: "false"
+            - name: DISABLE_SECURITY_DASHBOARDS_PLUGIN
+              value: "true"
