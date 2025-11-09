@@ -34,3 +34,5 @@ ingress:
   env:
     OPENSEARCH_URL: http://search-app-ref-opensearch:9200
     MINIO_ENDPOINT: http://search-app-ref-minio:9000
+
+    #a comment
