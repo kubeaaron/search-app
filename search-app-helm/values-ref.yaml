@@ -1,6 +1,9 @@
 imagePullSecrets:
   - name: harbor-cred
 
+backendHost: search-app-ref-backend.search-app.svc.cluster.local
+backendPort: 8080
+
 backend:
   image:
     repository: harbor.local/search-app/search-backend
@@ -27,3 +30,7 @@ ingress:
   tls:
     enabled: true
     secretName: search-app-ref-tls
+
+  env:
+    OPENSEARCH_URL: http://search-app-ref-opensearch:9200
+    MINIO_ENDPOINT: http://search-app-ref-minio:9000
