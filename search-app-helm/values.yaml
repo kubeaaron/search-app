@@ -70,6 +70,14 @@ frontend:
     repository: harbor.local/search-app/search-frontend
     tag: something
   replicas: 1
+  config:
+    # OIDC Configuration via Keycloak
+    oidc:
+      enabled: true
+      url: http://keycloak.cluster.local:8080  # Keycloak server URL
+      realm: Demo  # Keycloak realm name
+      clientId: search-app  # OIDC client ID
+      # baseUrl is optional - defaults to the ingress hostname
 
 ingress:
   enabled: true
