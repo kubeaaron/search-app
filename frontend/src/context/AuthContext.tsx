@@ -42,7 +42,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
 
     let isMounted = true;
-    let tokenRefreshInterval: NodeJS.Timeout;
+    //let tokenRefreshInterval: NodeJS.Timeout;
+    let tokenRefreshInterval: ReturnType<typeof setInterval>;
+    
 
     const initKeycloak = async () => {
       try {
@@ -99,20 +101,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Set up token refresh to keep session alive
         if (isAuth) {
           const refreshInterval = setInterval(() => {
-            if (kc.isTokenExpired(5)) {
+            if (kc.isTokenExpired?.(5)) {
               console.log('Token expired, refreshing...');
-              kc.refreshToken()
-                .then(() => {
-                  if (isMounted && kc.token) {
-                    setToken(kc.token);
-                    console.log('Token refreshed successfully');
-                  }
-                })
-                .catch((err) => {
-                  console.error('Token refresh failed:', err);
-                });
+
+              try {
+                (kc as any).refreshToken(5)
+                  .then(() => {
+                    if (isMounted && kc.token) {
+                      setToken(kc.token);
+                      console.log('Token refreshed successfully');
+                    }
+                  })
+                  .catch((err: unknown) => {
+                    console.error('Token refresh failed:', err);
+                  });
+              } catch (err) {
+                console.error('Error calling refreshToken:', err);
+              }
             }
-          }, 30000); // Check every 30 seconds
+          }, 30000);
 
           tokenRefreshInterval = refreshInterval;
         }
